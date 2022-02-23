@@ -48,6 +48,7 @@ class PostURLTests(TestCase):
         private_urls_codes = {
             '/create/': HTTPStatus.OK,
             f'/posts/{self.post_id}/edit/': HTTPStatus.OK,
+            '/follow/': HTTPStatus.OK,
         }
         for address, code in private_urls_codes.items():
             with self.subTest(address=address):
@@ -61,6 +62,9 @@ class PostURLTests(TestCase):
         private_urls_away_adresses = [
             '/create/',
             f'/posts/{self.post_id}/edit/',
+            '/follow/',
+            f'/profile/{self.author.username}/follow/',
+            f'/profile/{self.author.username}/unfollow/',
         ]
         for address in private_urls_away_adresses:
             with self.subTest(address=address):
@@ -76,6 +80,7 @@ class PostURLTests(TestCase):
             f'/posts/{self.post_id}/': 'posts/post_detail.html',
             f'/posts/{self.post_id}/edit/': 'posts/create_post.html',
             '/create/': 'posts/create_post.html',
+            '/follow/': 'posts/index.html',
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):

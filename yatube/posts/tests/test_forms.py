@@ -166,11 +166,27 @@ class PostFormTest(TestCase):
             'posts:post_detail', kwargs={'post_id': post.pk}
         ))
 
+
+class CommentFormTest(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.user = User.objects.create(username='noname')
+        cls.post = Post.objects.create(
+            text='Тестовый пост',
+            author=cls.user,
+        )
+
+    def setUp(self) -> None:
+        self.guest_client = Client()
+        self.authorized_client = Client()
+        self.authorized_client.force_login(CommentFormTest.user)
+
     def test_authorized_user_can_add_comment(self):
         """После успешной отправки комментарий сохраняется в бд
         и появяется на странице."""
         comments_count = Comment.objects.count()
-        post = PostFormTest.post
+        post = CommentFormTest.post
         reverse_name = reverse('posts:add_comment', kwargs={
             'post_id': post.pk
         })
@@ -180,7 +196,7 @@ class PostFormTest(TestCase):
         expected_data = {
             'post': post,
             'text': 'Тестовый комментарий',
-            'author': PostFormTest.user,
+            'author': CommentFormTest.user,
         }
         response = self.authorized_client.post(
             reverse_name,
@@ -202,11 +218,18 @@ class PostFormTest(TestCase):
     def test_anonymous_user_can_not_add_comment(self):
         """Неавторизованный пользователь не может отправить комментарий."""
         comments_count = Comment.objects.count()
-        post = PostFormTest.post
+        post = CommentFormTest.post
         reverse_name = reverse('posts:add_comment', kwargs={
             'post_id': post.pk
         })
-        response = self.guest_client.get(reverse_name)
+        form_data = {
+            'text': 'Тестовый комментарий'
+        }
+        response = self.guest_client.post(
+            reverse_name,
+            data=form_data,
+            follow=True
+        )
         self.assertFalse(Comment.objects.filter(
             text='Тестовый комментарий').exists()
         )
