@@ -294,11 +294,15 @@ class PostPagesTest(TestCase):
         response = self.authorized_client.get(reverse_name)
         self.assertNotIn(author_post, response.context['page_obj'])
 
-    # def test_favorite_authors_page(self):
-    #     """Только авторизованный пользователь может отправить комментарий."""
-    #     post = PostPagesTest.post
-    #     reverse_name = reverse('posts:add_comment', kwargs={
-    #         'post_id': post.pk
-    #     })
-    #     response = self.authorized_client.get(reverse_name)
-    #     self.assertNotIn(author_post, response.context['page_obj'])
+    def test_cache(self):
+        """Тест работы кэша."""
+        post = Post.objects.create(text='пост', author=PostPagesTest.user)
+        response = self.authorized_client.get(reverse('posts:index'))
+        cached_content = response.content
+        self.assertEqual(response.content, cached_content)
+        post.delete()
+        response = self.authorized_client.get(reverse('posts:index'))
+        self.assertEqual(response.content, cached_content)
+        cache.clear()
+        response = self.authorized_client.get(reverse('posts:index'))
+        self.assertNotEqual(response.content, cached_content)
