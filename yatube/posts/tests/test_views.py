@@ -3,7 +3,7 @@ from django import forms
 from django.test import TestCase, Client
 from django.urls import reverse
 from ..models import Follow, Post, Group, User
-from ..forms import PostForm
+from ..forms import PostForm, CommentForm
 from ..views import POSTS_AMOUNT
 
 ADDITIONAL_POSTS_AMOUNT = 1
@@ -16,6 +16,7 @@ class PostPagesTest(TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.user = User.objects.create(username='noname')
+        cls.author = User.objects.create(username='author')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
@@ -30,10 +31,18 @@ class PostPagesTest(TestCase):
             Post(
                 text='Тестовый пост' + str(num),
                 group=cls.group,
-                author=cls.user,
-            ) for num in range(1, POSTS_NUM + 1)
+                author=cls.author,
+            ) for num in range(1, POSTS_NUM)
         ])
-        cls.post = Post.objects.get(pk=1)
+        cls.follow = Follow.objects.create(
+            user=cls.user,
+            author=cls.author
+        )
+        cls.post = Post.objects.create(
+            text='Тестовый пост',
+            group=cls.group,
+            author=cls.user,
+        )
         cls.all_posts = Post.objects.all()
 
     def setUp(self) -> None:
@@ -45,6 +54,7 @@ class PostPagesTest(TestCase):
         """URL-адрес использует соответствующий шаблон."""
         templates_url_names = {
             reverse('posts:index'): 'posts/index.html',
+            reverse('posts:follow_index'): 'posts/index.html',
             reverse(
                 'posts:group_list', kwargs={'slug': PostPagesTest.group.slug}
             ): 'posts/group_list.html',
@@ -93,20 +103,31 @@ class PostPagesTest(TestCase):
                 )[POSTS_AMOUNT:GROUP_POSTS_NUM],
             },
             reverse('posts:profile', kwargs={
-                'username': PostPagesTest.user.username
+                'username': PostPagesTest.author.username
             }): {
                 'page_obj': list(
-                    PostPagesTest.all_posts.filter(author=PostPagesTest.user)
+                    PostPagesTest.all_posts.filter(author=PostPagesTest.author)
                 )[:POSTS_AMOUNT],
-                'author': PostPagesTest.user,
+                'author': PostPagesTest.author,
                 'posts_num': PostPagesTest.all_posts.filter(
-                    author=PostPagesTest.user
+                    author=PostPagesTest.author
                 ).count(),
+                'following': Follow.objects.filter(
+                    user=PostPagesTest.user,
+                    author=PostPagesTest.author
+                ).exists(),
             },
             reverse('posts:post_detail', kwargs={
                 'post_id': PostPagesTest.post.pk
             }): {
                 'post': PostPagesTest.post,
+                # 'comments': PostPagesTest.post.comments.all(),
+                'comments_form': {
+                    'type': CommentForm,
+                    'fields_type': {
+                        'text': forms.fields.CharField,
+                    },
+                },
             },
             reverse('posts:post_create'): {
                 'form': {
@@ -136,6 +157,11 @@ class PostPagesTest(TestCase):
                 },
                 'is_edit': True,
             },
+            reverse('posts:follow_index'): {
+                'page_obj': list(
+                    PostPagesTest.all_posts.filter(author=PostPagesTest.author)
+                )[:POSTS_AMOUNT],
+            },
         }
         for reverse_name, key_context in pages_context.items():
             with self.subTest(reverse_name=reverse_name):
@@ -148,7 +174,7 @@ class PostPagesTest(TestCase):
                                 response.context[key].object_list,
                                 expected_context
                             )
-                        elif key == 'form':
+                        elif 'form' in key:
                             self.assertIn('type', expected_context)
                             self.assertIn('fields_type', expected_context)
                             self.assertIsInstance(
@@ -160,7 +186,7 @@ class PostPagesTest(TestCase):
                             ].items():
                                 with self.subTest(field=field):
                                     self.assertIsInstance(
-                                        response.context['form'].fields.get(
+                                        response.context[key].fields.get(
                                             field
                                         ),
                                         expected_type
@@ -172,7 +198,7 @@ class PostPagesTest(TestCase):
                                     with self.subTest(field=field):
                                         self.assertEqual(
                                             response.context[
-                                                'form'
+                                                key
                                             ].initial[field],
                                             expected_value
                                         )
@@ -220,19 +246,21 @@ class PostPagesTest(TestCase):
         )
 
     def test_follow(self):
-        """При подписке авторизованного пользователя на другого автора
+        """При подписке авторизованного пользователя на автора
         создаётся запись в бд."""
-        author = User.objects.create(username='author')
+        user = User.objects.create(username='user')
+        authorized_user = Client()
+        authorized_user.force_login(user)
         reverse_name = reverse('posts:profile_follow', kwargs={
-            'username': author.username
+            'username': PostPagesTest.author.username
         })
         redirect_reverse_name = reverse('posts:profile', kwargs={
-            'username': author.username
+            'username': PostPagesTest.author.username
         })
-        response = self.authorized_client.get(reverse_name)
+        response = authorized_user.get(reverse_name)
         self.assertTrue(Follow.objects.filter(
             user=PostPagesTest.user,
-            author=author
+            author=PostPagesTest.author
         ).exists())
         self.assertRedirects(response, redirect_reverse_name)
 
@@ -254,30 +282,26 @@ class PostPagesTest(TestCase):
     def test_unfollow(self):
         """При отписке авторизованного пользователя от отслеживаемого автора
         запись в бд удаляется."""
-        author = User.objects.create(username='author')
-        Follow.objects.create(user=PostPagesTest.user, author=author)
         reverse_name = reverse('posts:profile_unfollow', kwargs={
-            'username': author.username
+            'username': PostPagesTest.author.username
         })
         redirect_reverse_name = reverse('posts:profile', kwargs={
-            'username': author.username
+            'username': PostPagesTest.author.username
         })
         response = self.authorized_client.get(reverse_name)
         self.assertFalse(Follow.objects.filter(
             user=PostPagesTest.user,
-            author=author
+            author=PostPagesTest.author
         ).exists())
         self.assertRedirects(response, redirect_reverse_name)
 
     def test_favorite_authors_page(self):
         """Новый пост автора отображается на странице Избранного у
         подписчиков."""
-        author = User.objects.create(username='author')
         author_post = Post.objects.create(
             text='Пост автора',
-            author=author,
+            author=PostPagesTest.author,
         )
-        Follow.objects.create(user=PostPagesTest.user, author=author)
         reverse_name = reverse('posts:follow_index')
         response = self.authorized_client.get(reverse_name)
         self.assertIn(author_post, response.context['page_obj'])
@@ -285,13 +309,15 @@ class PostPagesTest(TestCase):
     def test_favorite_authors_page(self):
         """Новый пост автора не отображается на странице Избранного у
         не подписанных пользователей."""
-        author = User.objects.create(username='author')
+        user = User.objects.create(username='user')
+        authorized_user = Client()
+        authorized_user.force_login(user)
         author_post = Post.objects.create(
             text='Пост автора',
-            author=author,
+            author=PostPagesTest.author,
         )
         reverse_name = reverse('posts:follow_index')
-        response = self.authorized_client.get(reverse_name)
+        response = authorized_user.get(reverse_name)
         self.assertNotIn(author_post, response.context['page_obj'])
 
     def test_cache(self):
