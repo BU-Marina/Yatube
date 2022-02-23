@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}{{ description }}{% endblock %}
+{% block content %}
+  {% comment %} {% load cache %} {% endcomment %}
+  {% comment %} {% cache 20 index_page%} {% endcomment %}
+  {% include 'posts/includes/switcher.html' %}
+  {% include 'posts/includes/post_list.html' %}
+  {% include 'posts/includes/paginator.html' %}
+  {% comment %} {% endcache %}  {% endcomment %}
+  {{ message }}
+{% endblock %}

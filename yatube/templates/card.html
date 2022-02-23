@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load user_filters %}
+{% block title %}Шаблон карточки{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-8 p-5">
+      <div class="card">
+        <div class="card-header">
+          {% block header %}Пусто{% endblock %}
+        </div>
+        <div class="card-body">
+          {% block body %}Пусто{% endblock %}
+        </div>
+      </div> <!-- card -->
+    </div> <!-- col -->
+  </div> <!-- row -->
+{% endblock %}
