@@ -42,7 +42,7 @@ def group_posts(request, slug):
 
 def post_detail(request, post_id):
     template = 'posts/post_detail.html'
-    post = Post.objects.get(pk=post_id)
+    post = get_object_or_404(Post, pk=post_id)
     comments = list(post.comments.all())
     comments_form = CommentForm()
 
@@ -59,9 +59,9 @@ def profile(request, username):
     template = 'posts/profile.html'
     user = request.user
     author = get_object_or_404(User, username=username)
-    following = False
-    if user.is_authenticated:
-        following = Follow.objects.filter(user=user, author=author).exists()
+    following = user.is_authenticated and Follow.objects.filter(
+        user=user, author=author
+    ).exists()
     posts = author.posts.all().select_related('group')
     posts_num = posts.count()
     paginator = Paginator(posts, POSTS_AMOUNT)
@@ -123,7 +123,7 @@ def post_edit(request, post_id):
 
 @login_required
 def add_comment(request, post_id):
-    post = Post.objects.get(pk=post_id)
+    post = get_object_or_404(Post, pk=post_id)
     comments_form = CommentForm(request.POST or None)
     if comments_form.is_valid():
         comments_form.instance.author = request.user
@@ -143,7 +143,7 @@ def follow_index(request):
             'чтобы следить за их обновлениями'
         )
     posts = Post.objects.filter(
-        author__id__in=followings.values_list('author_id')
+        author__following__user=user
     )
     paginator = Paginator(posts, POSTS_AMOUNT)
     page_number = request.GET.get('page')
@@ -152,9 +152,8 @@ def follow_index(request):
     context = {
         'description': description,
         'page_obj': page_obj,
+        'message': message,
     }
-    if message:
-        context['message'] = message
     return render(request, 'posts/index.html', context)
 
 
@@ -175,6 +174,6 @@ def profile_unfollow(request, username):
     user = request.user
     author = get_object_or_404(User, username=username)
     following = Follow.objects.filter(user=user, author=author).exists()
-    if following and user != author:
+    if following:
         Follow.objects.filter(user=user, author=author).delete()
     return redirect('posts:profile', username=username)
