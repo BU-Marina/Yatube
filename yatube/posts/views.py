@@ -43,7 +43,7 @@ def group_posts(request, slug):
 def post_detail(request, post_id):
     template = 'posts/post_detail.html'
     post = Post.objects.get(pk=post_id)
-    comments = post.comments.all()
+    comments = list(post.comments.all())
     comments_form = CommentForm()
 
     context = {

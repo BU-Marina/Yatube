@@ -202,11 +202,6 @@ class PostPagesTest(TestCase):
                                             ].initial[field],
                                             expected_value
                                         )
-                        elif key == 'comments':
-                            self.assertEqual(
-                                list(response.context[key]),
-                                expected_context
-                            )
                         else:
                             self.assertEqual(
                                 response.context[key],
