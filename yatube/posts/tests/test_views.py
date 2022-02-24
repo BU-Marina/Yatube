@@ -2,7 +2,7 @@ from django.core.cache import cache
 from django import forms
 from django.test import TestCase, Client
 from django.urls import reverse
-from ..models import Comment, Follow, Post, Group, User
+from ..models import Follow, Post, Group, User
 from ..forms import PostForm, CommentForm
 from ..views import POSTS_AMOUNT
 
