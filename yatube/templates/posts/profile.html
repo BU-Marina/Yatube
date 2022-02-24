@@ -20,6 +20,6 @@
         </a>
     {% endif %}
   </div>
-  {% include 'posts/includes/post_list.html' %}
+  {% include 'posts/includes/post_list.html' with group_shown=True %}
   {% include 'posts/includes/paginator.html' %}
 {% endblock %}

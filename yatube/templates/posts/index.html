@@ -2,7 +2,7 @@
 {% block title %}{{ description }}{% endblock %}
 {% block content %}
   {% include 'posts/includes/switcher.html' %}
-  {% include 'posts/includes/post_list.html' %}
+  {% include 'posts/includes/post_list.html' with author_shown=True group_shown=True %}
   {% include 'posts/includes/paginator.html' %}
   {{ message }}
 {% endblock %}

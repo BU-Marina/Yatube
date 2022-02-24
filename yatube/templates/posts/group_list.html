@@ -5,6 +5,6 @@
   <p>
     {{ group.description }}
   </p>
-  {% include 'posts/includes/post_list.html' %}
+  {% include 'posts/includes/post_list.html' with author_shown=True %}
   {% include 'posts/includes/paginator.html' %}
 {% endblock %}
