@@ -2,7 +2,7 @@ from django.core.cache import cache
 from django import forms
 from django.test import TestCase, Client
 from django.urls import reverse
-from ..models import Follow, Post, Group, User
+from ..models import Comment, Follow, Post, Group, User
 from ..forms import PostForm, CommentForm
 from ..views import POSTS_AMOUNT
 
@@ -121,7 +121,7 @@ class PostPagesTest(TestCase):
                 'post_id': PostPagesTest.post.pk
             }): {
                 'post': PostPagesTest.post,
-                # 'comments': PostPagesTest.post.comments.all(),
+                'comments': list(PostPagesTest.post.comments.all()),
                 'comments_form': {
                     'type': CommentForm,
                     'fields_type': {
@@ -202,6 +202,11 @@ class PostPagesTest(TestCase):
                                             ].initial[field],
                                             expected_value
                                         )
+                        elif key == 'comments':
+                            self.assertEqual(
+                                list(response.context[key]),
+                                expected_context
+                            )
                         else:
                             self.assertEqual(
                                 response.context[key],
