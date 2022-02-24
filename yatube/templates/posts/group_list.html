@@ -6,7 +6,6 @@
     {{ group.description }}
   </p>
   {% load thumbnail %}
-  {% with request.resolver_match.view_name as view_name %}
     {% for post in page_obj %}
       <article>
         <ul>
@@ -32,6 +31,5 @@
       </article>
       {% if not forloop.last %}<hr>{% endif %}
     {% endfor %}
-  {% endwith %}
   {% include 'posts/includes/paginator.html' %}
 {% endblock %}
