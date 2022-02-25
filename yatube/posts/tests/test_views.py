@@ -288,7 +288,7 @@ class PostPagesTest(TestCase):
         ).exists())
         self.assertRedirects(response, redirect_reverse_name)
 
-    def test_favorite_authors_page(self):
+    def test_new_post_in_favorites(self):
         """Новый пост автора отображается на странице Избранного у
         подписчиков."""
         author_post = Post.objects.create(
@@ -299,7 +299,7 @@ class PostPagesTest(TestCase):
         response = self.authorized_client.get(reverse_name)
         self.assertIn(author_post, response.context['page_obj'])
 
-    def test_favorite_authors_page(self):
+    def test_new_post_not_in_favorites(self):
         """Новый пост автора не отображается на странице Избранного у
         не подписанных пользователей."""
         user = User.objects.create(username='user')
