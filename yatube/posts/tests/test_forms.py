@@ -58,7 +58,7 @@ class PostFormTest(TestCase):
         )
         expected_data = {
             'pk': 2,
-            'text': 'Новый пост',
+            'text': form_data['text'],
             'group': PostFormTest.group,
             'author': PostFormTest.user,
         }
@@ -102,7 +102,7 @@ class PostFormTest(TestCase):
         )
         expected_data = {
             'pk': 2,
-            'text': 'Новый пост',
+            'text': form_data['text'],
             'group': PostFormTest.group,
             'author': PostFormTest.user,
             'image': small_gif,
@@ -152,7 +152,7 @@ class PostFormTest(TestCase):
         edited_post = Post.objects.latest()
         expected_data = {
             'pk': post.pk,
-            'text': 'Супер-тестовый пост',
+            'text': form_data['text'],
             'group': PostFormTest.super_group,
             'author': PostFormTest.user,
         }
@@ -195,7 +195,7 @@ class CommentFormTest(TestCase):
         }
         expected_data = {
             'post': post,
-            'text': 'Тестовый комментарий',
+            'text': form_data['text'],
             'author': CommentFormTest.user,
         }
         response = self.authorized_client.post(
@@ -210,7 +210,6 @@ class CommentFormTest(TestCase):
                     getattr(latest_comment, field), expected_value
                 )
         self.assertEqual(Comment.objects.count(), comments_count + 1)
-        self.assertIn(latest_comment, response.context['comments'])
         self.assertRedirects(response, reverse('posts:post_detail', kwargs={
             'post_id': post.pk
         }))
@@ -231,7 +230,7 @@ class CommentFormTest(TestCase):
             follow=True
         )
         self.assertFalse(Comment.objects.filter(
-            text='Тестовый комментарий').exists()
+            text=form_data['text'], post=post).exists()
         )
         self.assertEqual(Comment.objects.count(), comments_count)
         self.assertRedirects(response, reverse(

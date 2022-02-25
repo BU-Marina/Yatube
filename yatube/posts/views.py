@@ -28,7 +28,9 @@ def index(request):
 def group_posts(request, slug):
     template = 'posts/group_list.html'
     group = get_object_or_404(Group, slug=slug)
-    posts = group.posts.all().select_related('author')
+    posts = group.posts.all().order_by('-created').select_related(
+        'author'
+    )
     paginator = Paginator(posts, POSTS_AMOUNT)
     page_num = request.GET.get('page')
     page_obj = paginator.get_page(page_num)

@@ -220,14 +220,7 @@ class PostPagesTest(TestCase):
             }),
         ]
         for page in desired_pages:
-            response = self.authorized_client.get(page)
-            try:
-                self.assertIn(
-                    PostPagesTest.post,
-                    response.context['page_obj']
-                )
-            except AssertionError:
-                page += '?page=2'
+            with self.subTest(page=page):
                 response = self.authorized_client.get(page)
                 self.assertIn(
                     PostPagesTest.post,

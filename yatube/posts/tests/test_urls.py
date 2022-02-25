@@ -81,6 +81,7 @@ class PostURLTests(TestCase):
             f'/posts/{self.post_id}/edit/': 'posts/create_post.html',
             '/create/': 'posts/create_post.html',
             '/follow/': 'posts/index.html',
+            'unexpected_page/': 'core/404.html',
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
