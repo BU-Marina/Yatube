@@ -86,4 +86,6 @@ python3 manage.py shell
     >>> quit()
 ```
 
+```
 python manage.py loaddata dump.json 
+```
