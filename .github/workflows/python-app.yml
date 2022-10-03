@@ -12,7 +12,7 @@ jobs:
     if: ${{ github.repository == 'BU-Marina/Yatube' }}
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9, 3.10]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -48,7 +48,5 @@ jobs:
         DJANGO_SETTINGS_MODULE: yatube.settings
         DEBUG: 1
         ALLOWED_HOSTS: "*"
-      with:
-        path: yatube/
       run: |
         py.test
