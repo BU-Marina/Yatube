@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}{{ description }}{% endblock %}
 {% block content %}
+  <h1>{{ description }}</h1>
+  <br>
   {% include 'posts/includes/switcher.html' %}
   {% for post in page_obj %}
     {% include 'posts/includes/post_list.html' with author_shown=True group_shown=True %}
