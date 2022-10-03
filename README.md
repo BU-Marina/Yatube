@@ -80,8 +80,10 @@ python3 manage.py shell
 
 Выполнить в открывшемся терминале:
 
->>> from django.contrib.contenttypes.models import ContentType
->>> ContentType.objects.all().delete()
->>> quit()
+```
+    >>> from django.contrib.contenttypes.models import ContentType
+    >>> ContentType.objects.all().delete()
+    >>> quit()
+```
 
 python manage.py loaddata dump.json 
