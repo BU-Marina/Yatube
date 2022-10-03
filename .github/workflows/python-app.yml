@@ -29,7 +29,7 @@ jobs:
       with:
         repository: ${{ secrets.repository }}
         ssh-key: ${{ secrets.ACCESS_TOKEN }}
-        path: yatube/
+        path: Yatube/
     - name: Lint with flake8 author
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -48,6 +48,5 @@ jobs:
         DJANGO_SETTINGS_MODULE: yatube.yatube.settings
         DEBUG: 1
         ALLOWED_HOSTS: "*"
-        PATH: yatube/yatube/
       run: |
         py.test
