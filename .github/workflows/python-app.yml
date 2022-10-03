@@ -48,6 +48,6 @@ jobs:
         DJANGO_SETTINGS_MODULE: yatube.yatube.settings
         DEBUG: 1
         ALLOWED_HOSTS: "*"
-        PATH: yatube/
+        PATH: yatube/yatube/
       run: |
         py.test
